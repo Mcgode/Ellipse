@@ -5,7 +5,7 @@ import time
 
 
 # Variables paramètre
-M_0 = (9300e3, 0)
+M_0 = (9300e3, 12000e3)
 v_0 = (0, 3000)
 M = 6.0e24
 
@@ -30,12 +30,21 @@ def prod_scalaire(x, y):
     return x[0] * y[0] + x[1] * y[1]
 
 
-def rk4(R, dt):
+def rk1(R, h):
+    return R + h * f(R, 0)
+
+
+def rk2(R, h):
+    k = R + f(R, 0) * h / 2
+    return R + f(k, 0) * h / 2
+
+
+def rk4(R, h):
     k1 = f(R, 0)
-    k2 = f(R + k1 * (dt / 2), 0)
-    k3 = f(R + k2 * (dt / 2), 0)
-    k4 = f(R + k3 * dt, 0)
-    return R + (dt / 6) * (k1 + 2*k2 + 2*k3 + k4)
+    k2 = f(R + k1 * (h / 2), 0)
+    k3 = f(R + k2 * (h / 2), 0)
+    k4 = f(R + k3 * h, 0)
+    return R + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
 
 
 # Initialisation des données de calcul
@@ -71,29 +80,36 @@ def continuer():
     x.append(Rs[-1][0] * np.cos(thetas[-1]))
     y.append(Rs[-1][0] * np.sin(thetas[-1]))
 
+T1 = time.time()
 
-while a * x[-1] - 1 <= y[-1]:
+while x[-1] * a <= y[-1]:
+    continuer()
+
+while x[-1] * a > y[-1]:
     continuer()
 
 x.pop()
 y.pop()
 
+T2 = time.time()
+print(T2 - T1)
 
-x0, y0 = np.array(M_0) / module(M_0)
-M = np.array([[x0**2 - y0**2, 2 * x0 * y0], [2 * x0 * y0, y0**2 - x0**2]])
-
-
-def sym(x):
-    return np.dot(M, x)
+# x0, y0 = np.array(M_0) / module(M_0)
+# M = np.array([[x0**2 - y0**2, 2 * x0 * y0], [2 * x0 * y0, y0**2 - x0**2]])
 
 
-for i in range(len(x) - 1, 0, -1):
-    x_p, y_p = sym(np.array([x[i], y[i]]))
-    x.append(x_p)
-    y.append(y_p)
-
-x.append(x[0])
-y.append(y[0])
+# def sym(A):
+#     u, v = A
+#     return [u * M[0, 0] + v * M[0, 1], u * M[1, 0] + v * M[1, 1]]
+#
+#
+# for i in range(len(x) - 1, 0, -1):
+#     x_p, y_p = sym([x[i], y[i]])
+#     x.append(x_p)
+#     y.append(y_p)
+#
+# x.append(x[0])
+# y.append(y[0])
 
 Tf = time.time()
 
